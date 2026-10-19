@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Venttiiliensäätö Peli & 0-Virhe Diplomi</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #18191a; color: #e4e6eb; text-align: center; padding: 15px; margin: 0; }
+    .card { background: #242526; border-radius: 12px; padding: 20px; max-width: 750px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.6); border: 1px solid #3a3b3c; }
+    h1 { color: #4caf50; margin-bottom: 2px; font-size: 24px; }
+    .subtitle { color: #b0b3b8; font-size: 13px; margin-bottom: 15px; }
+    .nav-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
+    .tab-btn { padding: 8px 16px; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; background: #3a3b3c; color: #fff; }
+    .tab-btn.active { background: #4caf50; color: #000; }
+    select, button, input { padding: 10px 14px; margin: 6px; font-size: 15px; border-radius: 8px; border: none; font-weight: bold; }
+    select, input { background: #3a3b3c; color: #fff; border: 1px solid #4e4f50; }
+    .btn-main { background: #2196f3; color: white; cursor: pointer; }
+    .btn-main:hover { background: #1e88e5; }
+    
+    .canvas-container { background: #18191a; border-radius: 10px; padding: 10px; margin: 10px 0; border: 1px solid #3a3b3c; display: inline-block; }
+    #starCanvas { background: #111213; border-radius: 50%; border: 2px solid #4caf50; }
+
+    .status { font-size: 17px; margin: 10px 0; padding: 12px; background: #3a3b3c; border-radius: 8px; border-left: 5px solid #2196f3; text-align: left; line-height: 1.4; }
+    .grid-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }
+    .cyl-btn { background: #ff9800; color: #000; width: 60px; height: 60px; font-size: 20px; border-radius: 50%; cursor: pointer; transition: transform 0.1s; }
+    .cyl-btn:hover { background: #ffa726; transform: scale(1.08); }
+    .feedback { font-size: 18px; font-weight: bold; margin-top: 15px; min-height: 28px; }
+    .success { color: #4caf50; }
+    .error { color: #f44336; }
+    .score-board { margin-top: 15px; font-size: 15px; color: #b0b3b8; display: flex; justify-content: space-around; background: #18191a; padding: 8px; border-radius: 8px; }
+    .formula-box { background: #18191a; padding: 10px; border-radius: 6px; color: #ffca28; font-family: monospace; font-size: 15px; margin: 8px 0; }
+    
+    .progress-box { margin-top: 15px; background: #18191a; padding: 10px; border-radius: 8px; font-size: 14px; text-align: left; }
+    .progress-tag { display: inline-block; padding: 4px 8px; margin: 3px; border-radius: 4px; background: #3a3b3c; color: #888; font-weight: bold; }
+    .progress-tag.done { background: #4caf50; color: #000; }
+
+    /* DIPLOMI STYYLIT */
+    #diploma-container { display: none; background: #fff; color: #111; padding: 40px; border: 10px double #1b5e20; border-radius: 8px; max-width: 650px; margin: 20px auto; text-align: center; font-family: 'Georgia', serif; }
+    #diploma-container h2 { font-size: 30px; color: #1b5e20; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+    #diploma-container h3 { font-size: 18px; color: #333; margin-top: 0; font-weight: normal; }
+    .diploma-name { font-size: 26px; border-bottom: 2px solid #1b5e20; display: inline-block; padding: 0 20px; margin: 15px 0; font-weight: bold; font-style: italic; }
+    .diploma-body { font-size: 16px; line-height: 1.6; color: #222; margin: 20px 0; }
+    .diploma-seal { width: 90px; height: 90px; background: #4caf50; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; margin: 20px auto; border: 4px gold solid; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
+    
+    /* TULOSTUSMÄÄRITYKSET (Print CSS) */
+    @media print {
+      body * { visibility: hidden; }
+      #diploma-container, #diploma-container * { visibility: visible; }
+      #diploma-container { position: absolute; left: 0; top: 0; width: 100%; max-width: 100%; border: 10px double #000; box-shadow: none; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card no-print">
+  <h1>⚙️ Venttiilien Säätömestari 0-Virhe</h1>
+  <div class="subtitle">Kone- ja tuotantotekniikka | Visuaalinen Kampitähti & Säätölogiikka</div>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" id="tab1" onclick="switchTab('seq')">1. Säätöjärjestys</button>
+    <button class="tab-btn" id="tab2" onclick="switchTab('calc')">2. Lämpölaajenemis</button>
+    <button class="tab-btn" id="tab3" onclick="switchTab('diploma')">🎓 Todistus / Diplomi</button>
+  </div>
+
+  <!-- PELITILA 1: SÄÄTÖJÄRJESTYS & KAMPITÄHTI -->
+  <div id="mode-seq">
+    <div>
+      <label for="engineSelect"><strong>Moottorityyppi:</strong> </label>
+      <select id="engineSelect" onchange="setupEngine()">
+        <option value="3syl">3-sylinterinen (123 - 120°)</option>
+        <option value="4syl_1342">4-sylinterinen (1-3-4-2 - 180°)</option>
+        <option value="4syl_1243">4-sylinterinen (1-2-4-3 Agco - 180°)</option>
+        <option value="5syl">5-sylinterinen (1-2-4-5-3 Agco/Volvo - 144°)</option>
+        <option value="6syl">6-sylinterinen (1-5-3-6-2-4 - 120°)</option>
+        <option value="7syl">7-sylinterinen (1-2-4-6-7-5-3 Agco - 102.8°)</option>
+        <option value="v8">8-sylinterinen V8 (1-8-4-3-6-5-7-2 - 90°)</option>
+      </select>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="starCanvas" width="200" height="200"></canvas>
+    </div>
+
+    <div class="status" id="instruction">Ladataan tehtävää...</div>
+    <p style="margin: 5px 0;"><strong>Mikä sylinteri kuuluu säätää tässä vaiheessa?</strong></p>
+    <div class="grid-buttons" id="buttons"></div>
+  </div>
+
+  <!-- PELITILA 2: LÄMPÖLAAJENEMISLASKURI -->
+  <div id="mode-calc" style="display: none;">
+    <div class="formula-box">Kaava: ΔL = α × L × ΔT</div>
+    <div class="status" id="calcTask">Ladataan laskutehtävää...</div>
+    
+    <div style="margin: 15px 0;">
+      <label for="userAnswer"><strong>Syötä ΔL (mm):</strong> </label>
+      <input type="number" id="userAnswer" step="0.01" placeholder="esim. 0.70">
+      <button class="btn-main" onclick="checkCalculation()">Tarkista</button>
+    </div>
+  </div>
+
+  <!-- PELITILA 3: DIPLOMI NÄKYMÄ -->
+  <div id="mode-diploma" style="display: none;">
+    <div class="status" id="diplomaStatus">
+      Käy läpi kaikki 7 moottorityyppiä ja lämpölaajenemislaskenta ilman virheitä saadaksesi virallisen 0-Virhe Venttiiliasentajan todistuksen!
+    </div>
+    <div style="margin: 15px 0;" id="nameInputDiv">
+      <label for="studentName">Opiskelijan Nimi: </label>
+      <input type="text" id="studentName" placeholder="Matti Meikäläinen">
+      <button class="btn-main" onclick="generateDiploma()">Luo Todistus</button>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <!-- SUORITUSSEURANTA -->
+  <div class="progress-box">
+    <strong>Suoritetut 0-virhetasot:</strong><br>
+    <span class="progress-tag" id="tag-3syl">3-syl</span>
+    <span class="progress-tag" id="tag-4syl_1342">4-syl (1342)</span>
+    <span class="progress-tag" id="tag-4syl_1243">4-syl (1243)</span>
+    <span class="progress-tag" id="tag-5syl">5-syl</span>
+    <span class="progress-tag" id="tag-6syl">6-syl</span>
+    <span class="progress-tag" id="tag-7syl">7-syl</span>
+    <span class="progress-tag" id="tag-v8">V8</span>
+    <span class="progress-tag" id="tag-calc">Fysiikka (ΔL)</span>
+  </div>
+
+  <div class="score-board">
+    <div>Pisteet: <strong id="score" style="color: #4caf50;">0</strong></div>
+    <div>Virheet: <strong id="errors" style="color: #f44336;">0</strong></div>
+  </div>
+</div>
+
+<!-- TULOSTATTAVA DIPLOMI / TODISTUS -->
+<div id="diploma-container">
+  <h2>Tunnustus & Todistus</h2>
+  <h3>Kone- ja tuotantotekniikan osaamisesta</h3>
+  <p>Täten todistetaan, että</p>
+  <div class="diploma-name" id="diplomaStudentName">Opiskelijan Nimi</div>
+  <div class="diploma-body">
+    on suorittanut hyväksytysti ja <strong>0-virheperiaatetta (Zero Defect)</strong> noudattaen<br>
+    työkonemoottoreiden venttiilikoneiston säätölogiikan, kampitähden ja astekulmien hallinnan sekä lämpölaajenemislaskennan seuraaville moottorityypeille:<br>
+    <em>3-, 4- (1342 & 1243), 5-, 6-, 7-sylinteriset rivimoottorit sekä V8-moottori.</em>
+  </div>
+  <div class="diploma-seal">0-VIRHE<br>PASSI</div>
+  <p style="font-size: 13px; color: #555;">Päiväys: <span id="diplomaDate"></span> | Opetusympäristö: Venttiilien Säätömestari Pro</p>
+  <button class="btn-main no-print" onclick="window.print()" style="margin-top: 15px; background: #4caf50;">🖨️ Tulosta Todistus / Tallenna PDF</button>
+</div>
+
+<script>
+// --- MOOTTORIEN SÄÄTÖSÄÄNNÖT & KAMPITÄHDET ---
+const engines = {
+  "3syl": {
+    name: "3-sylinterinen (120°)",
+    angleStep: 120,
+    labels: ["1", "2", "3"],
+    rules: [
+      { text: "3-sylinterisen PAKOVENTTIILI on täysin auki.", correct: 1, angle: 0 },
+      { text: "1-sylinterisen PAKOVENTTIILI on täysin auki.", correct: 2, angle: 120 },
+      { text: "2-sylinterisen PAKOVENTTIILI on täysin auki.", correct: 3, angle: 240 }
+    ],
+    count: 3
+  },
+  "4syl_1342": {
+    name: "4-sylinterinen (180°)",
+    angleStep: 180,
+    labels: ["1,4", "2,3"],
+    rules: [
+      { text: "4-sylinteri SAKSAA (Vaihtotahti 1-4 pari).", correct: 1, angle: 0 },
+      { text: "2-sylinteri SAKSAA (Vaihtotahti 3-2 pari).", correct: 3, angle: 180 },
+      { text: "1-sylinteri SAKSAA (Vaihtotahti 4-1 pari).", correct: 4, angle: 0 },
+      { text: "3-sylinteri SAKSAA (Vaihtotahti 2-3 pari).", correct: 2, angle: 180 }
+    ],
+    count: 4
+  },
+  "4syl_1243": {
+    name: "4-sylinterinen (180°)",
+    angleStep: 180,
+    labels: ["1,4", "2,3"],
+    rules: [
+      { text: "4-sylinteri SAKSAA (Vaihtotahti 1-4 pari).", correct: 1, angle: 0 },
+      { text: "3-sylinteri SAKSAA (Vaihtotahti 2-3 pari).", correct: 2, angle: 180 },
+      { text: "1-sylinteri SAKSAA (Vaihtotahti 4-1 pari).", correct: 4, angle: 0 },
+      { text: "2-sylinteri SAKSAA (Vaihtotahti 3-2 pari).", correct: 3, angle: 180 }
+    ],
+    count: 4
+  },
+  "5syl": {
+    name: "5-sylinterinen (144°)",
+    angleStep: 144,
+    labels: ["1", "2", "4", "5", "3"],
+    rules: [
+      { text: "1-sylinterin PAKO täysin auki.", correct: 4, angle: 0 },
+      { text: "2-sylinterin PAKO täysin auki.", correct: 5, angle: 144 },
+      { text: "4-sylinterin PAKO täysin auki.", correct: 3, angle: 288 },
+      { text: "5-sylinterin PAKO täysin auki.", correct: 1, angle: 72 },
+      { text: "3-sylinterin PAKO täysin auki.", correct: 2, angle: 216 }
+    ],
+    count: 5
+  },
+  "6syl": {
+    name: "6-sylinterinen (120°)",
+    angleStep: 120,
+    labels: ["1,6", "5,2", "3,4"],
+    rules: [
+      { text: "6-sylinteri SAKSAA (1-6 pari).", correct: 1, angle: 0 },
+      { text: "2-sylinteri SAKSAA (5-2 pari).", correct: 5, angle: 120 },
+      { text: "4-sylinteri SAKSAA (3-4 pari).", correct: 3, angle: 240 },
+      { text: "1-sylinteri SAKSAA (6-1 pari).", correct: 6, angle: 0 },
+      { text: "5-sylinteri SAKSAA (2-5 pari).", correct: 2, angle: 120 },
+      { text: "3-sylinteri SAKSAA (4-3 pari).", correct: 4, angle: 240 }
+    ],
+    count: 6
+  },
+  "7syl": {
+    name: "7-sylinterinen (102.8°)",
+    angleStep: 102.85,
+    labels: ["1", "2", "4", "6", "7", "5", "3"],
+    rules: [
+      { text: "6-sylinteri SAKSAA (1-6 pari).", correct: 1, angle: 0 },
+      { text: "7-sylinteri SAKSAA (2-7 pari).", correct: 2, angle: 102.8 },
+      { text: "5-sylinteri SAKSAA (4-5 pari).", correct: 4, angle: 205.7 },
+      { text: "3-sylinteri SAKSAA (6-3 pari).", correct: 6, angle: 308.5 },
+      { text: "1-sylinteri SAKSAA (7-1 pari).", correct: 7, angle: 51.4 },
+      { text: "2-sylinteri SAKSAA (5-2 pari).", correct: 5, angle: 154.2 },
+      { text: "4-sylinteri SAKSAA (3-4 pari).", correct: 3, angle: 257.1 }
+    ],
+    count: 7
+  },
+  "v8": {
+    name: "8-sylinterinen V8 (90°)",
+    angleStep: 90,
+    labels: ["1,6", "8,5", "4,7", "3,2"],
+    rules: [
+      { text: "6-sylinteri SAKSAA (1-6 pari).", correct: 1, angle: 0 },
+      { text: "5-sylinteri SAKSAA (8-5 pari).", correct: 8, angle: 90 },
+      { text: "7-sylinteri SAKSAA (4-7 pari).", correct: 4, angle: 180 },
+      { text: "2-sylinteri SAKSAA (3-2 pari).", correct: 3, angle: 270 },
+      { text: "1-sylinteri SAKSAA (6-1 pari).", correct: 6, angle: 0 },
+      { text: "8-sylinteri SAKSAA (5-8 pari).", correct: 5, angle: 90 },
+      { text: "4-sylinteri SAKSAA (7-4 pari).", correct: 7, angle: 180 },
+      { text: "3-sylinteri SAKSAA (2-3 pari).", correct: 2, angle: 270 }
+    ],
+    count: 8
+  }
+};
+
+let currentEngineKey = "3syl";
+let currentEngine, currentStep = 0, score = 0, errors = 0;
+let engineCorrectStreak = 0;
+let currentRotation = 0, targetRotation = 0;
+let currentCalcProblem = {};
+
+// Seuranta suoritetuista tasoista
+const completedLevels = {
+  "3syl": false, "4syl_1342": false, "4syl_1243": false,
+  "5syl": false, "6syl": false, "7syl": false, "v8": false, "calc": false
+};
+
+function switchTab(mode) {
+  document.getElementById('tab1').className = mode === 'seq' ? 'tab-btn active' : 'tab-btn';
+  document.getElementById('tab2').className = mode === 'calc' ? 'tab-btn active' : 'tab-btn';
+  document.getElementById('tab3').className = mode === 'diploma' ? 'tab-btn active' : 'tab-btn';
+  
+  document.getElementById('mode-seq').style.display = mode === 'seq' ? 'block' : 'none';
+  document.getElementById('mode-calc').style.display = mode === 'calc' ? 'block' : 'none';
+  document.getElementById('mode-diploma').style.display = mode === 'diploma' ? 'block' : 'none';
+  document.getElementById('diploma-container').style.display = 'none';
+  document.getElementById('feedback').innerText = '';
+
+  if (mode === 'calc') {
+    generateCalcProblem();
+  } else if (mode === 'seq') {
+    drawStar();
+  } else if (mode === 'diploma') {
+    checkDiplomaEligibility();
+  }
+}
+
+function setupEngine() {
+  currentEngineKey = document.getElementById("engineSelect").value;
+  currentEngine = engines[currentEngineKey];
+  currentStep = 0;
+  engineCorrectStreak = 0;
+  currentRotation = currentEngine.rules[currentStep].angle;
+  targetRotation = currentRotation;
+  renderEngine();
+  drawStar();
+}
+
+function renderEngine() {
+  document.getElementById("instruction").innerText = "📋 " + currentEngine.rules[currentStep].text;
+  const btnDiv = document.getElementById("buttons");
+  btnDiv.innerHTML = "";
+  document.getElementById("feedback").innerText = "";
+
+  for (let i = 1; i <= currentEngine.count; i++) {
+    const btn = document.createElement("button");
+    btn.className = "cyl-btn";
+    btn.innerText = i;
+    btn.onclick = () => checkEngineAnswer(i);
+    btnDiv.appendChild(btn);
+  }
+}
+
+function checkEngineAnswer(selected) {
+  const correct = currentEngine.rules[currentStep].correct;
+  const feedback = document.getElementById("feedback");
+
+  if (selected === correct) {
+    score += 10;
+    engineCorrectStreak++;
+    feedback.className = "feedback success";
+    feedback.innerText = "✓ OIKEIN! Nollavirheasento vahvistettu.";
+
+    // Jos opiskelija tekee sarjan täysin oikein ilman virheitä, merkitään taso suoritetuksi
+    if (engineCorrectStreak >= currentEngine.rules.length) {
+      completedLevels[currentEngineKey] = true;
+      document.getElementById(`tag-${currentEngineKey}`).className = "progress-tag done";
+    }
+
+    currentStep = (currentStep + 1) % currentEngine.rules.length;
+    targetRotation += currentEngine.angleStep;
+    animateRotation();
+
+    setTimeout(() => {
+      renderEngine();
+    }, 1100);
+  } else {
+    errors += 1;
+    engineCorrectStreak = 0; // Nollataan putki virheen sattuessa
+    feedback.className = "feedback error";
+    feedback.innerText = `✗ VIRHE! Sylinteri ${selected} ei ole oikeassa säätöasennossa!`;
+  }
+  updateScore();
+}
+
+// --- CANVAS KAMPITÄHDEN PIIRTO ---
+function drawStar() {
+  const canvas = document.getElementById("starCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const radius = 65;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius + 15, 0, Math.PI * 2);
+  ctx.strokeStyle = "#3a3b3c";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = "#ff9800";
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - radius - 15);
+  ctx.lineTo(cx - 7, cy - radius - 24);
+  ctx.lineTo(cx + 7, cy - radius - 24);
+  ctx.closePath();
+  ctx.fill();
+
+  const labels = currentEngine.labels;
+  const count = labels.length;
+
+  for (let i = 0; i < count; i++) {
+    const baseAngle = (i * (360 / count)) * (Math.PI / 180);
+    const rotAngle = (currentRotation * Math.PI) / 180;
+    const finalAngle = baseAngle + rotAngle - Math.PI / 2;
+
+    const x = cx + radius * Math.cos(finalAngle);
+    const y = cy + radius * Math.sin(finalAngle);
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = i === 0 ? "#4caf50" : "#2196f3";
+    ctx.lineWidth = i === 0 ? 4 : 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(x, y, 11, 0, Math.PI * 2);
+    ctx.fillStyle = i === 0 ? "#4caf50" : "#3a3b3c";
+    ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 10px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(labels[i], x, y);
+  }
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffca28";
+  ctx.fill();
+}
+
+function animateRotation() {
+  if (currentRotation < targetRotation) {
+    currentRotation += 5;
+    if (currentRotation > targetRotation) currentRotation = targetRotation;
+    drawStar();
+    requestAnimationFrame(animateRotation);
+  }
+}
+
+// --- LÄMPÖLAAJENEMISLASKURI ---
+function generateCalcProblem() {
+  const alpha = 0.000012;
+  const lengthOptions = [300, 350, 400, 450, 480, 500];
+  const tempDiffOptions = [100, 110, 120, 130];
+
+  const L = lengthOptions[Math.floor(Math.random() * lengthOptions.length)];
+  const dT = tempDiffOptions[Math.floor(Math.random() * tempDiffOptions.length)];
+  const exactdL = alpha * L * dT;
+
+  currentCalcProblem = { alpha, L, dT, answer: exactdL };
+
+  document.getElementById("calcTask").innerHTML = 
+    `<strong>Laske nostotangon/venttiilin pituuden muutos (ΔL):</strong><br>` +
+    `• Laajenemiskerroin (α): <code>0.000012</code> 1/°C<br>` +
+    `• Alkupituus (L): <code>${L} mm</code><br>` +
+    `• Lämpötilan muutos (ΔT): <code>${dT} °C</code> (-30°C → +${dT-30}°C)`;
+  
+  document.getElementById("userAnswer").value = "";
+}
+
+function checkCalculation() {
+  const userVal = parseFloat(document.getElementById("userAnswer").value);
+  const feedback = document.getElementById("feedback");
+
+  if (isNaN(userVal)) {
+    feedback.className = "feedback error";
+    feedback.innerText = "Syötä kelvollinen numero!";
+    return;
+  }
+
+  const diff = Math.abs(userVal - currentCalcProblem.answer);
+  if (diff < 0.02) {
+    score += 15;
+    completedLevels["calc"] = true;
+    document.getElementById("tag-calc").className = "progress-tag done";
+    
+    feedback.className = "feedback success";
+    feedback.innerText = `✓ OIKEIN! ΔL = ${currentCalcProblem.answer.toFixed(3)} mm. 0-Virhelaskenta hyväksytty!`;
+  } else {
+    errors += 1;
+    feedback.className = "feedback error";
+    feedback.innerText = `✗ VIRHE! Laskelma ei täytä 0-virhevaatimusta. Yritä uudelleen!`;
+  }
+  updateScore();
+}
+
+function updateScore() {
+  document.getElementById("score").innerText = score;
+  document.getElementById("errors").innerText = errors;
+}
+
+// --- DIPLOMI / TODISTUS LOGIIKKA ---
+function checkDiplomaEligibility() {
+  const allDone = Object.values(completedLevels).every(v => v === true);
+  const statusDiv = document.getElementById("diplomaStatus");
+
+  if (allDone) {
+    statusDiv.style.background = "#1b5e20";
+    statusDiv.style.borderLeft = "5px solid #4caf50";
+    statusDiv.innerHTML = "🎉 <strong>ONNEA!</strong> Olet suorittanut kaikki 0-virhetasot hyväksytysti! Syötä nimesi alle ja tulosta todistuksesi.";
+  } else {
+    statusDiv.style.background = "#3a3b3c";
+    statusDiv.style.borderLeft = "5px solid #2196f3";
+    statusDiv.innerHTML = "Suorita jokainen 7 moottorityypistä sekä lämpölaajenemislaskenta 0-virheperiaatteella avataksesi todistuksen! (Vihreät tägit alhaalla osoittavat valmiit osiot).";
+  }
+}
+
+function generateDiploma() {
+  const name = document.getElementById("studentName").value.trim();
+  if (!name) {
+    alert("Syötä opiskelijan nimi!");
+    return;
+  }
+
+  document.getElementById("diplomaStudentName").innerText = name;
+  
+  const today = new Date();
+  const dateStr = today.getDate() + "." + (today.getMonth() + 1) + "." + today.getFullYear();
+  document.getElementById("diplomaDate").innerText = dateStr;
+
+  document.getElementById("diploma-container").style.display = "block";
+  document.getElementById("diploma-container").scrollIntoView({ behavior: 'smooth' });
+}
+
+setupEngine();
+</script>
+</body>
+</html>
